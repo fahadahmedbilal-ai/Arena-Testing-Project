@@ -1324,6 +1324,7 @@ function endGame(won) {
   showScreen(endScreen);
   document.getElementById("retryButton").focus();
   playGameOverJingle(won);
+  submitScore("survival", score);
 }
 
 // Range mode's equivalent of endGame(): cleared === every stage finished,
@@ -1346,6 +1347,7 @@ function endRangeGame(cleared) {
   showScreen(endScreen);
   document.getElementById("retryButton").focus();
   playGameOverJingle(cleared);
+  submitScore("range", score);
 }
 
 // Updates the start screen's intro copy, deploy button label, and which
@@ -1364,6 +1366,7 @@ function applyModeCopy() {
     deployLabel.textContent = "ENTER THE ARENA";
   }
   updateLoadoutNote();
+  updatePersonalBestDisplay();
 }
 
 function updateLoadoutNote() {
@@ -1414,5 +1417,161 @@ document.getElementById("fullscreenButton").addEventListener("click", toggleFull
 // arena is visible (idle) behind the start screen right from page load.
 requestAnimationFrame(gameLoop);
 
+
+// ---------------------------------------------------------------------
+// 16. ACCOUNTS (login/signup/session/personal-best scores)
+// ---------------------------------------------------------------------
+// A thin fetch() client for server.py's /api/* endpoints. Nothing above
+// this section knows accounts exist - it just calls submitScore() when a
+// run ends; everything else about gating startScreen behind a login lives
+// entirely here.
+
+const authScreen = document.getElementById("authScreen");
+const authForm = document.getElementById("authForm");
+const authUsernameInput = document.getElementById("authUsername");
+const authPasswordInput = document.getElementById("authPassword");
+const authError = document.getElementById("authError");
+const authSubmitButton = document.getElementById("authSubmit");
+const authHeading = document.getElementById("authHeading");
+const authToggleText = document.getElementById("authToggleText");
+const authToggleButton = document.getElementById("authToggle");
+const accountBadge = document.getElementById("accountBadge");
+const accountUsername = document.getElementById("accountUsername");
+
+let authMode = "login"; // "login" | "signup"
+let currentUser = null; // { username, scores: { survival, range } }
+
+function setAuthMode(mode) {
+  authMode = mode;
+  hideAuthError();
+  if (mode === "signup") {
+    authHeading.innerHTML = "ENLIST<br><span>NOW.</span>";
+    authSubmitButton.querySelector("span:first-child").textContent = "CREATE ACCOUNT";
+    authToggleText.textContent = "ALREADY ENLISTED?";
+    authToggleButton.textContent = "SIGN IN INSTEAD";
+    authPasswordInput.autocomplete = "new-password";
+  } else {
+    authHeading.innerHTML = "SIGN<br><span>IN.</span>";
+    authSubmitButton.querySelector("span:first-child").textContent = "SIGN IN";
+    authToggleText.textContent = "NEW HERE?";
+    authToggleButton.textContent = "ENLIST INSTEAD";
+    authPasswordInput.autocomplete = "current-password";
+  }
+}
+
+function showAuthError(message) {
+  authError.textContent = message;
+  authError.classList.remove("hidden");
+}
+function hideAuthError() {
+  authError.classList.add("hidden");
+}
+
+authToggleButton.addEventListener("click", () => {
+  setAuthMode(authMode === "login" ? "signup" : "login");
+});
+
+authForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  hideAuthError();
+
+  const username = authUsernameInput.value.trim();
+  const password = authPasswordInput.value;
+  const endpoint = authMode === "signup" ? "/api/signup" : "/api/login";
+
+  authSubmitButton.disabled = true;
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      showAuthError(data.error || "Something went wrong. Try again.");
+      return;
+    }
+
+    onLoggedIn(data);
+  } catch (err) {
+    showAuthError("Couldn't reach the server. Check your connection and try again.");
+  } finally {
+    authSubmitButton.disabled = false;
+  }
+});
+
+function onLoggedIn(data) {
+  currentUser = { username: data.username, scores: data.scores || {} };
+  accountUsername.textContent = currentUser.username;
+  accountBadge.classList.remove("hidden");
+  authForm.reset();
+  hideAuthError();
+  hideScreen(authScreen);
+  showScreen(startScreen);
+  updatePersonalBestDisplay();
+}
+
+async function checkSession() {
+  try {
+    const response = await fetch("/api/me");
+    const data = await response.json();
+    if (data.username) {
+      onLoggedIn(data);
+    }
+  } catch (err) {
+    // No backend reachable (e.g. the file was opened directly instead of
+    // through the Flask server) - just leave the login screen showing.
+  }
+}
+
+document.getElementById("logoutButton").addEventListener("click", async () => {
+  try {
+    await fetch("/api/logout", { method: "POST" });
+  } catch (err) {
+    // Even if the request fails, still reset the local UI to logged-out.
+  }
+  currentUser = null;
+  accountBadge.classList.add("hidden");
+  hideScreen(startScreen);
+  showScreen(authScreen);
+  setAuthMode("login");
+});
+
+// Fire-and-forget: tells the server about a finished run's score. Never
+// blocks the end-screen UI on this - if it fails (e.g. the session expired
+// mid-run), the run's result still displays normally either way.
+function submitScore(mode, value) {
+  if (!currentUser) return;
+  fetch("/api/score", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode, score: value }),
+  })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((data) => {
+      if (data) {
+        currentUser.scores[data.mode] = data.best_score;
+        updatePersonalBestDisplay();
+      }
+    })
+    .catch(() => {});
+}
+
+function updatePersonalBestDisplay() {
+  const text = document.getElementById("personalBestText");
+  if (!currentUser) {
+    text.textContent = "—";
+    return;
+  }
+  const best = currentUser.scores[selectedGameMode];
+  text.textContent = best ? String(best).padStart(4, "0") + " PTS" : "NO RUNS YET";
+}
+
+checkSession();
+
+// These read/update account state (updatePersonalBestDisplay reads
+// currentUser), so they run last - after every `let`/`const` above them
+// has actually been initialized, not just hoisted.
 applyModeCopy(); // sync intro copy/deploy label/briefing section with the default selected mode
 onWindowResize();

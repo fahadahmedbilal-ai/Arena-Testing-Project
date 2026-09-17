@@ -126,6 +126,33 @@ button svg {
 .iconButton:hover {
   border-color:var(--acid);
   color:var(--acid)}
+#accountBadge {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  height:40px;
+  padding:0 14px;
+  background:#151818aa;
+  border:1px solid var(--line);
+  color:var(--paper);
+  font:12px var(--mono);
+  letter-spacing:.6px}
+#accountBadge strong {
+  color:var(--acid);
+  font-size:13px;
+  max-width:120px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap}
+#accountBadge #logoutButton {
+  height:auto;
+  width:auto;
+  padding:2px;
+  border:0;
+  background:transparent;
+  color:var(--muted)}
+#accountBadge #logoutButton:hover {
+  color:var(--coral)}
 .fullscreenButton {
   width:40px;
   padding:0}
@@ -303,6 +330,56 @@ h1 {
   font:12px var(--mono);
   letter-spacing:.5px;
   color:var(--muted)}
+#personalBestText {
+  color:var(--acid)}
+.authBriefing {
+  padding-bottom:0}
+.authForm {
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  margin-top:8px}
+.authField {
+  display:flex;
+  flex-direction:column;
+  gap:8px}
+.authField input {
+  height:52px;
+  padding:0 16px;
+  background:#171b19eb;
+  border:1px solid #3c4036;
+  color:var(--paper);
+  font:15px var(--mono);
+  letter-spacing:.4px}
+.authField input::placeholder {
+  color:#5c6156}
+.authField input:focus {
+  outline:none;
+  border-color:var(--acid)}
+.authError {
+  margin:0;
+  padding:10px 14px;
+  background:#ff685214;
+  border:1px solid #ff685255;
+  color:var(--coral);
+  font:12px var(--mono);
+  letter-spacing:.4px}
+.authToggleRow {
+  display:flex;
+  align-items:center;
+  gap:8px}
+.authToggleButton {
+  background:none;
+  border:0;
+  padding:0;
+  color:var(--acid);
+  font:12px var(--mono);
+  letter-spacing:.5px;
+  text-decoration:underline;
+  text-underline-offset:3px;
+  cursor:pointer}
+.authToggleButton:hover {
+  color:#edff97}
 .deployNote>span:last-child {
   margin-left:auto;
   font-size:12px;
@@ -784,6 +861,15 @@ h1 {
   gap:7px}
 .fullscreenButton {
   width:34px}
+#accountBadge {
+  height:34px;
+  padding:0 10px;
+  gap:7px}
+#accountBadge .microLabel {
+  display:none}
+#accountBadge strong {
+  max-width:70px;
+  font-size:12px}
 .startOverlay {
   padding:0 24px;
   background:linear-gradient(180deg,#101212 0%,#101212c9 20%,#101212f5 51%,#101212 95%)}

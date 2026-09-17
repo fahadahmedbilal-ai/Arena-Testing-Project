@@ -8,19 +8,29 @@ Create a beginner-friendly single-player shooting arena game for a college assig
 
 - HTML, CSS, and JavaScript, plus Three.js (loaded from a CDN via a classic
   `<script>` tag - no bundler/npm install) for real 3D rendering with WebGL.
-- Core game files: `index.html`, `style.css`, and `script.js`.
-- Docker (`Dockerfile` + `docker-compose.yml`) serves the game over a
-  localhost link via nginx - `docker compose up` and no other install step.
+- Frontend game files live in `public/`: `index.html`, `style.css`, `script.js`.
+- A small Python/Flask backend (`server.py` + `requirements.txt`) serves
+  those static files AND a JSON API (`/api/signup`, `/api/login`,
+  `/api/logout`, `/api/me`, `/api/score`) for real user accounts - see
+  Accounts below. Passwords are hashed (`pbkdf2:sha256`), never stored
+  plain; sessions are Flask's signed cookies keyed by a `SECRET_KEY`
+  environment variable (never hardcoded).
+- Accounts/scores persist in SQLite (`data/arena.db`), on a Fly Volume in
+  production so they survive redeploys.
+- Docker (`Dockerfile` + `docker-compose.yml`) runs the Flask app via
+  gunicorn - `docker compose up` and no other install step. (This replaced
+  the earlier nginx-only static setup once accounts needed a real backend.)
 - No external asset files (images/audio) - music and sound effects are
   generated in code with the Web Audio API.
 
 *(Note: this project started as a strictly vanilla-2D-Canvas, no-framework,
-three-file build. It was deliberately expanded to real 3D + difficulty
-settings + procedural audio + Docker at the requester's explicit request,
-which now takes priority over the original "avoid frameworks/complex setup"
-constraint below. The "beginner-friendly, easy to explain" goal still
-applies - keep new code as clearly commented/structured as the added
-complexity allows.)*
+three-file build. It was deliberately expanded over several rounds - to
+real 3D, difficulty settings, procedural audio, Docker, enemies that shoot
+back, a second Target Range mode, and now real backend accounts - each time
+at the requester's explicit request, which takes priority over the
+original "avoid frameworks/complex setup, no accounts/database" constraints
+below. The "beginner-friendly, easy to explain" goal still applies - keep
+new code as clearly commented/structured as the added complexity allows.)*
 
 ## Core gameplay
 
@@ -56,6 +66,18 @@ stage ends the run. Reuses Survival's movement/aiming/shooting/camera/audio
 systems entirely unchanged - only what bullets are allowed to hit, and the
 win/lose condition, differ.
 
+## Accounts
+
+Real sign-up/sign-in gates the game (added deliberately at the requester's
+explicit request - see the Technology and Scope notes). No account, no
+play - the login screen is what a first-time visitor sees, before the start
+screen. Each account tracks its own best score per mode (Survival, Target
+Range), shown on the start screen as "PERSONAL BEST" once logged in. This
+is the one part of the project that is no longer a pure static site - it
+now genuinely requires the Flask backend running to function at all (the
+old "just open index.html" / plain `python3 -m http.server` fallback no
+longer works, since there's no server to authenticate against).
+
 ## Small extras
 
 - Display health, score, remaining time, and current difficulty.
@@ -71,7 +93,7 @@ Use a dark arena, a brightly colored player tank, and distinct enemy soldier col
 
 ## Scope
 
-Keep the project otherwise small - no multiplayer, accounts, database, weapon upgrades, or real physics (movement/collision stays simple distance-based checks, not a physics engine). 3D rendering, difficulty settings, procedural audio, Docker packaging, enemies that shoot back, and the staged Target Range mode are all in scope (added deliberately at the requester's explicit request over several rounds, see the Technology note above) - don't expand further without being asked.
+Keep the project otherwise small - no multiplayer, weapon upgrades, or real physics (movement/collision stays simple distance-based checks, not a physics engine). 3D rendering, difficulty settings, procedural audio, Docker packaging, enemies that shoot back, the staged Target Range mode, and now real backend accounts (Flask + SQLite) are all in scope (added deliberately at the requester's explicit request over several rounds, see the Technology note above) - don't expand further (e.g. into multiplayer, OAuth/social login, password reset flows, admin panels) without being asked.
 
 *(Note: the frontend's visual theme - "Enter the Pit" acid/coral industrial
 styling, the live arena preview on the start screen, ARIA/accessibility

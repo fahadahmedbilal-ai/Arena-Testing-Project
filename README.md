@@ -4,6 +4,13 @@ A single-player 3D shooting arena game built with HTML, CSS, JavaScript, and
 [Three.js](https://threejs.org/) (loaded from a CDN — no install/build step).
 Made for a college assignment.
 
+Real accounts gate access to the game — sign up or sign in with a call sign
+and password before you can play. Accounts and best scores (per mode) live
+in a small Python/Flask + SQLite backend (`server.py`); see
+[Accounts & scores](#accounts--scores) below for how it works. **This means
+the game now requires the backend server to be running — it can no longer
+be played by just double-clicking `public/index.html`.**
+
 The **Enter the Pit** theme uses acid-yellow armor, coral enemy accents, a
 live 3D arena preview, illuminated perimeter rails, and an industrial HUD.
 Select a difficulty, then click **Enter the Arena**. After a run, select a
@@ -36,21 +43,23 @@ or `docker compose down` if it's running in the background.
 > `docker compose up --build` doesn't work first try, check that Docker
 > Desktop is actually running and re-run the command.
 
-### Option B — No install needed
+### Option B — Run the Flask server directly (no Docker)
 
-Three.js is loaded via a classic `<script>` tag (not an ES module), so the
-game also runs by just opening the file — no server, no Docker:
-
-1. Make sure `index.html`, `style.css`, and `script.js` are in the same folder.
-2. Double-click `index.html` (or right-click → Open With → your browser).
-
-Or serve it with a one-line local server for a localhost link without Docker:
+Requires Python 3. The static-file-only fallback (`python3 -m http.server`
+or opening `public/index.html` directly) **no longer works** now that login
+is required — every page load calls the backend to check your session, and
+the game itself won't unlock without it.
 
 ```
-python3 -m http.server 8000
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+SECRET_KEY=dev-only-secret FLASK_ENV=development python3 server.py
 ```
 
-then visit `http://localhost:8000`.
+Then visit **http://localhost:8000**. `SECRET_KEY` can be any string for
+local dev — it just signs the session cookie. Accounts/scores are stored in
+`data/arena.db` (SQLite), created automatically on first run.
 
 **Controls**
 - Move: `WASD` or Arrow Keys
@@ -210,9 +219,66 @@ next one automatically; clearing the last stage's targets wins the run.
 modes unchanged, since a tank moving and firing works exactly the same
 regardless of what its bullets are allowed to hit.
 
+### Accounts & scores
+
+The game itself is still a static frontend (`public/`) — this adds a small
+Flask backend (`server.py`) in front of it, because real accounts need
+somewhere server-side to check a password and remember who's who, which no
+purely static site can do.
+
+- **Passwords** are never stored directly — `generate_password_hash()`
+  (from Werkzeug, Flask's toolkit) turns each password into a one-way hash
+  (`pbkdf2:sha256` specifically; explicit, rather than Werkzeug's default,
+  because that default depends on the local Python's OpenSSL build
+  supporting `scrypt`, which isn't guaranteed everywhere — it wasn't on the
+  machine this was built on). Logging in re-hashes the entered password and
+  compares hashes; the real password is never stored or compared directly.
+- **Sessions** use Flask's built-in signed cookie: after login, `session["user_id"]`
+  is set, and every request Flask verifies the cookie's signature (using
+  `SECRET_KEY`) to trust it without hitting the database again. That's why
+  `SECRET_KEY` must be a real secret in production, set via `fly secrets set`
+  (see below) — anyone who has it could forge a valid login cookie.
+- **The frontend** (`script.js`, section 16) calls `/api/signup`, `/api/login`,
+  `/api/logout`, `/api/me`, and `/api/score` with `fetch()`. On page load,
+  `checkSession()` calls `/api/me`; if it comes back with a username (the
+  browser already had a valid session cookie), the login screen is skipped
+  entirely and the player goes straight to the start screen.
+- **Scores**: `endGame()`/`endRangeGame()` both call `submitScore(mode, score)`
+  when a run ends. The server only keeps each account's *best* score per
+  mode (`/api/score` compares against what's stored and only updates it if
+  the new run beats it), and the start screen's "PERSONAL BEST" line reflects
+  whichever mode is currently selected.
+- **Persistence**: SQLite (`data/arena.db` locally, `/data/arena.db` in
+  production) is a single file, not a separate database server — simple,
+  but it does mean the file must live somewhere that survives a redeploy.
+  In production that's a Fly Volume (`fly.toml`'s `[[mounts]]`); without
+  one, every deploy would start with zero accounts again, since a fresh
+  container has a blank filesystem.
+
 ## 3. Manual testing checklist
 
 Run through these before presenting:
+
+**Accounts**
+- [ ] On first visit (no session yet), the login screen shows — not the
+      start screen.
+- [ ] Signing up with a username under 3 characters, or a password under 8
+      characters, shows an inline error and does not create an account.
+- [ ] Signing up with a username that's already taken shows "That username
+      is already taken." and does not log you in.
+- [ ] A successful signup logs you in immediately (no separate login step)
+      and shows the start screen with your call sign in the header.
+- [ ] Signing out returns you to the login screen, and reloading the page
+      after that still shows the login screen (session actually cleared).
+- [ ] Logging back in with the same credentials succeeds and shows your
+      previously saved personal best score(s).
+- [ ] Logging in with a wrong password shows "Incorrect username or
+      password." without revealing whether the username itself exists.
+- [ ] Reloading the page while logged in skips the login screen entirely
+      (goes straight to the start screen) — the session persists.
+- [ ] Playing a Survival or Target Range run and beating your previous best
+      updates the "PERSONAL BEST" line on the start screen after the run
+      ends; a worse run does not lower it.
 
 - [ ] Start screen shows on page load, with controls listed, and the arena
       is visible (idle) in 3D behind it.

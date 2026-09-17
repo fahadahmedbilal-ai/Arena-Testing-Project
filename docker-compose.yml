@@ -3,3 +3,12 @@ services:
     build: .
     ports:
       - "8080:80"
+    environment:
+      # Dev-only secret - production uses a real one set via `fly secrets set`,
+      # never committed to git. See README for details.
+      - SECRET_KEY=local-dev-secret-do-not-use-in-production
+      - FLASK_ENV=development
+    volumes:
+      # Persists accounts/scores across `docker compose down`/`up` locally,
+      # the same way a Fly Volume does in production.
+      - ./data:/app/data

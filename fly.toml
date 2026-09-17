@@ -3,12 +3,21 @@ primary_region = "iad"
 
 [build]
 
+[env]
+  # Points the app at the persistent volume below, so accounts/scores
+  # survive redeploys instead of living on the container's throwaway disk.
+  DB_PATH = "/data/arena.db"
+
 [http_service]
   internal_port = 80
   force_https = true
   auto_stop_machines = "stop"
   auto_start_machines = true
   min_machines_running = 0
+
+[[mounts]]
+  source = "arena_data"
+  destination = "/data"
 
 [[vm]]
   cpu_kind = "shared"

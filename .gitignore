@@ -1,4 +1,11 @@
-# elm-package generated files
-elm-stuff
-# elm-repl generated files
-repl-temp-*
+# Python
+.venv
+__pycache__/
+*.pyc
+
+# Local SQLite database (never commit real user data/accounts)
+data/
+*.db
+
+# Local secrets
+.env

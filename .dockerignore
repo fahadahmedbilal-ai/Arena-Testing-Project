@@ -1,6 +1,15 @@
 Dockerfile
 docker-compose.yml
 .dockerignore
+.gitignore
 README.md
 claude.md
+LICENSE
 .git
+fly.toml
+.venv
+__pycache__/
+*.pyc
+data/
+*.db
+.env
