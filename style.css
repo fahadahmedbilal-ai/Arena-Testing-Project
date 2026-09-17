@@ -1,0 +1,953 @@
+/* Acid-industrial arcade. The main artwork is the actual live 3D arena. */
+:root {
+  --ink:#101212;
+  --panel:#181b1b;
+  --paper:#efefe6;
+  --muted:#9b9e96;
+  --line:#363a35;
+  --acid:#d9fa47;
+  --coral:#ff6852;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  --display:Impact,"Arial Narrow","Helvetica Neue",sans-serif}
+
+* {
+  box-sizing:border-box}
+html,body {
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--ink);
+  color:var(--paper);
+  font-family:Arial,Helvetica,sans-serif}
+button,a {
+  -webkit-tap-highlight-color:transparent}
+button {
+  font:inherit;
+  cursor:pointer;
+  transition:background .18s,color .18s,border-color .18s,transform .18s}
+button:focus-visible,a:focus-visible {
+  outline:2px solid var(--paper);
+  outline-offset:5px}
+button:active {
+  transform:translateY(2px)}
+button svg {
+  width:21px;
+  height:21px}
+.hidden {
+  display:none!important}
+#gameContainer {
+  position:fixed;
+  inset:0;
+  isolation:isolate}
+#sceneContainer {
+  position:absolute;
+  inset:0}
+#sceneContainer canvas {
+  display:block;
+  width:100%;
+  height:100%}
+.screenTexture {
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:2;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,#0000000c 4px);
+  opacity:.6}
+
+/* Header */
+.gameHeader {
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:108px;
+  padding:26px 3.7%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  z-index:20;
+  border-bottom:1px solid #eef2cf16}
+.brand {
+  display:flex;
+  gap:13px;
+  align-items:center;
+  color:var(--paper);
+  text-decoration:none;
+  font-weight:900;
+  font-size:16px;
+  letter-spacing:.4px;
+  line-height:1.05}
+.brandMark {
+  height:45px;
+  width:45px;
+  border:1px solid var(--acid);
+  color:var(--acid);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font:40px var(--display);
+  position:relative}
+.brandMark>span {
+  position:absolute;
+  right:-5px;
+  top:-9px;
+  font:23px Arial;
+  background:var(--ink);
+  line-height:1}
+.brandEdition {
+  display:block;
+  font:12px var(--mono);
+  letter-spacing:1px;
+  margin-top:7px;
+  color:var(--muted)}
+.headerNote {
+  font:12px var(--mono);
+  letter-spacing:1px;
+  color:var(--muted)}
+.headerNote strong {
+  font-weight:normal;
+  color:#d8dace}
+#topControls {
+  display:flex;
+  gap:9px}
+.iconButton {
+  height:40px;
+  padding:0 13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  color:var(--paper);
+  background:#151818aa;
+  border:1px solid var(--line);
+  font:12px var(--mono);
+  letter-spacing:.6px}
+.iconButton:hover {
+  border-color:var(--acid);
+  color:var(--acid)}
+.fullscreenButton {
+  width:40px;
+  padding:0}
+.soundBars {
+  display:flex;
+  align-items:center;
+  gap:2px;
+  height:15px}
+.soundBars i {
+  display:block;
+  width:2px;
+  height:7px;
+  background:var(--acid)}
+.soundBars i:nth-child(2) {
+  height:15px}
+.soundBars i:nth-child(3) {
+  height:11px}
+.soundBars i:nth-child(4) {
+  height:5px}
+[aria-pressed="true"] .soundBars i {
+  height:2px;
+  background:var(--muted)}
+
+/* Launch screen */
+.overlay {
+  position:absolute;
+  inset:0;
+  z-index:10}
+.startOverlay {
+  padding:0 3.7%;
+  background:linear-gradient(90deg,#101212 0%,#101212fa 24%,#101212d9 38%,#10121200 66%);
+  overflow:auto}
+.briefing {
+  position:relative;
+  margin-top:clamp(137px,19vh,205px);
+  width:min(47%,570px);
+  padding-bottom:180px;
+  z-index:2}
+.eyebrow {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin:0 0 22px;
+  color:var(--acid);
+  font:12px var(--mono);
+  letter-spacing:2px}
+.eyebrow>span {
+  height:7px;
+  width:7px;
+  background:var(--acid)}
+h1 {
+  position:relative;
+  font-family:var(--display);
+  font-weight:900;
+  font-stretch:condensed;
+  margin:0;
+  font-size:clamp(72px,8.5vw,138px);
+  letter-spacing:-1.8px;
+  line-height:.91}
+.briefing h1>span {
+  -webkit-text-stroke:1.3px var(--paper);
+  color:transparent}
+.briefing h1>sup {
+  position:absolute;
+  margin:7px 0 0 12px;
+  padding:3px 5px;
+  background:var(--coral);
+  color:var(--ink);
+  font:12px var(--mono);
+  letter-spacing:0;
+  transform:rotate(-8deg)}
+.intro {
+  font-size:16px;
+  line-height:1.7;
+  color:var(--muted);
+  margin:25px 0 30px}
+.intro strong {
+  color:var(--paper);
+  font-weight:normal}
+.modeHeading {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin:0 0 12px;
+  align-items:center}
+.microLabel {
+  font:12px var(--mono);
+  letter-spacing:1.2px;
+  color:var(--muted)}
+.modeHint {
+  font:12px var(--mono);
+  color:#a0a695;
+  letter-spacing:.8px}
+.difficultyRow {
+  display:flex;
+  gap:8px}
+.difficultyButton {
+  position:relative;
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  padding:14px 15px 12px;
+  color:var(--paper);
+  background:#171b19eb;
+  border:1px solid #3c4036;
+  text-align:left}
+.difficultyButton:hover {
+  border-color:var(--acid);
+  background:#272e1c}
+.difficultyButton.selected {
+  border-color:var(--acid);
+  background:#d9fa4711;
+  box-shadow:inset 0 2px 0 var(--acid)}
+.difficultyButton.selected:after {
+  content:"+";
+  position:absolute;
+  right:10px;
+  top:9px;
+  color:var(--acid);
+  font:16px var(--mono)}
+.modeNumber {
+  font:12px var(--mono);
+  color:var(--muted);
+  margin-bottom:8px}
+.difficultyButton strong {
+  font-size:16px;
+  letter-spacing:1px;
+  font-weight:800}
+.selected strong {
+  color:var(--acid)}
+.modeDescription {
+  font-size:12px;
+  color:var(--muted);
+  margin-top:5px}
+.modeBars {
+  font:13px var(--mono);
+  color:var(--acid);
+  margin-top:11px;
+  letter-spacing:2px}
+.modeBars>span {
+  color:#454d3d}
+[data-difficulty="hard"] .modeBars {
+  color:var(--coral)}
+.mainButton {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  border:1px solid var(--acid);
+  background:var(--acid);
+  color:var(--ink);
+  font-size:17px;
+  letter-spacing:1px;
+  font-weight:900;
+  padding:18px 22px;
+  width:100%;
+  min-height:62px}
+.mainButton>span:last-child {
+  font-size:30px;
+  line-height:.7;
+  font-weight:normal}
+.mainButton:hover {
+  background:#edff97;
+  border-color:#edff97;
+  box-shadow:0 0 35px #d9fa4720}
+.deployButton {
+  margin-top:12px}
+.deployNote {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:13px;
+  font:12px var(--mono);
+  letter-spacing:.5px;
+  color:var(--muted)}
+.deployNote>span:last-child {
+  margin-left:auto;
+  font-size:12px;
+  letter-spacing:0;
+  color:#9fa58e}
+.statusDot {
+  display:inline-block;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--acid);
+  box-shadow:0 0 8px #d9fa4755;
+  flex-shrink:0}
+.arenaLabel {
+  position:absolute;
+  left:62%;
+  top:18%;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  transform:rotate(-3deg)}
+.arenaLabel strong {
+  font:54px var(--display);
+  letter-spacing:1px;
+  color:var(--paper)}
+.arenaLabel strong>span {
+  margin-left:22px;
+  color:var(--acid);
+  font-family:Arial;
+  font-weight:normal}
+.arenaLabel>span:last-child {
+  font:12px var(--mono);
+  color:var(--muted);
+  letter-spacing:2px}
+.missionStamp {
+  position:absolute;
+  right:3.7%;
+  top:42%;
+  writing-mode:vertical-rl;
+  display:flex;
+  align-items:center;
+  gap:14px}
+.missionStamp>span {
+  font:12px var(--mono);
+  letter-spacing:2px;
+  color:var(--muted)}
+.missionStamp strong {
+  font:80px var(--display);
+  color:var(--coral);
+  writing-mode:horizontal-tb;
+  line-height:.85;
+  transform:rotate(90deg);
+  margin:35px -20px}
+.missionStamp strong>span {
+  font:12px var(--mono);
+  margin-left:4px}
+.arenaCaption {
+  position:absolute;
+  bottom:23%;
+  left:60%;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  font:12px var(--mono);
+  letter-spacing:1px;
+  color:#a8ac99}
+.arenaCaption>span:nth-child(2) {
+  color:#505947}
+
+/* Keyboard guide */
+.controlDeck {
+  position:absolute;
+  bottom:57px;
+  left:3.7%;
+  right:3.7%;
+  min-height:92px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  background:#101212b8;
+  z-index:3}
+.controlDeckTitle {
+  font:12px var(--mono);
+  letter-spacing:1px}
+.controlDeckTitle span {
+  display:block;
+  font-size:12px;
+  letter-spacing:.3px;
+  color:#949d8b;
+  margin-top:8px}
+.controlItem {
+  display:flex;
+  align-items:center;
+  gap:14px;
+  font:12px var(--mono);
+  letter-spacing:1px}
+.controlItem small {
+  display:block;
+  color:var(--muted);
+  font:12px Arial;
+  letter-spacing:0;
+  margin-top:7px}
+.keyGroup {
+  display:flex;
+  gap:4px}
+kbd {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:27px;
+  height:28px;
+  border:1px solid #4a4e44;
+  border-bottom:3px solid #4a4e44;
+  background:#20231d;
+  color:#d4d8c6;
+  font:12px var(--mono);
+  padding:0 5px;
+  border-radius:3px}
+.wideKey {
+  padding:0 10px}
+.mouseIcon {
+  width:23px;
+  height:31px;
+  color:#d4d8c6}
+.gameFooter {
+  position:absolute;
+  z-index:20;
+  bottom:0;
+  left:3.7%;
+  right:3.7%;
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  font:12px var(--mono);
+  letter-spacing:1px;
+  color:#8a9180;
+  pointer-events:none}
+.footerMotto {
+  color:var(--acid)}
+.footerCross {
+  color:var(--acid);
+  font-size:19px;
+  margin-left:15px}
+
+/* Combat readouts */
+body:not([data-state="start"]) .headerNote {
+  display:none}
+body:not([data-state="start"]) .gameHeader {
+  height:83px;
+  border:0;
+  pointer-events:none}
+body:not([data-state="start"]) .brand {
+  font-size:12px}
+body:not([data-state="start"]) .brandMark {
+  height:35px;
+  width:35px;
+  font-size:29px}
+body:not([data-state="start"]) .brandEdition {
+  display:none}
+body:not([data-state="start"]) #topControls {
+  pointer-events:auto}
+body[data-state="playing"] #sceneContainer {
+  cursor:crosshair}
+body:not([data-state="start"]) .gameFooter {
+  height:34px}
+#hud,#rangeHud {
+  position:absolute;
+  top:24px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  gap:28px;
+  z-index:9;
+  padding:15px 24px;
+  background:#101212e8;
+  border:1px solid #626b3b77;
+  box-shadow:0 8px 40px #0004;
+  pointer-events:none}
+.hudItem {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  white-space:nowrap}
+.hudItem>strong {
+  font:27px var(--mono);
+  line-height:1;
+  color:var(--paper)}
+#healthDisplay {
+  display:flex;
+  gap:4px;
+  height:27px;
+  align-items:center}
+.armorPip {
+  height:16px;
+  width:20px;
+  background:var(--acid);
+  transform:skewX(-12deg)}
+.armorPip.empty {
+  background:#393c32}
+#scoreDisplay {
+  color:var(--acid)}
+.timerItem {
+  min-width:98px}
+.timerItem>strong {
+  color:var(--acid)}
+.timerTrack {
+  height:2px;
+  background:#444a33}
+.timerTrack>span {
+  display:block;
+  background:var(--acid);
+  width:100%;
+  height:100%}
+.timerItem.urgent>strong {
+  color:var(--coral)}
+.timerItem.urgent .timerTrack>span {
+  background:var(--coral)}
+#difficultyDisplay {
+  font-size:16px;
+  text-transform:uppercase}
+.hudButton {
+  display:flex;
+  gap:9px;
+  align-items:center;
+  background:transparent;
+  color:var(--paper);
+  border:0;
+  border-left:1px solid var(--line);
+  padding:10px 0 10px 20px;
+  font:12px var(--mono);
+  pointer-events:auto}
+.hudButton kbd {
+  font-size:12px;
+  min-width:26px;
+  height:20px}
+.hudButton:hover {
+  color:var(--acid)}
+
+/* Pause and result screens */
+.modalOverlay {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:100px 24px 55px;
+  background:#0b100de3;
+  backdrop-filter:blur(8px);
+  overflow:auto}
+.modalCard {
+  width:min(510px,100%);
+  padding:35px;
+  border:1px solid #505840;
+  background:#141916;
+  box-shadow:12px 12px 0 #0004;
+  position:relative}
+.modalCard:before {
+  content:"";
+  position:absolute;
+  height:3px;
+  left:-1px;
+  right:-1px;
+  top:-1px;
+  background:var(--acid)}
+.modalCard h1 {
+  font-size:clamp(55px,6.5vw,88px);
+  line-height:.97;
+  letter-spacing:-.8px}
+.modalCard h1>span {
+  color:var(--acid)}
+.modalCard>p {
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.7;
+  margin:22px 0 26px}
+.modalFootnote {
+  display:block;
+  text-align:center;
+  margin-top:20px;
+  font:12px var(--mono);
+  letter-spacing:1px;
+  color:var(--muted)}
+.resultCard {
+  width:min(550px,100%)}
+.resultStats {
+  display:flex;
+  gap:50px;
+  margin:25px 0;
+  padding:20px 0;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line)}
+.resultStats>div {
+  display:flex;
+  flex-direction:column;
+  gap:10px}
+.resultStats strong {
+  font:43px var(--display);
+  letter-spacing:1px;
+  color:var(--acid)}
+.resultStats strong>span {
+  font:15px var(--mono);
+  margin-left:5px}
+.resultCard .retryLabel {
+  font:12px var(--mono);
+  margin:0 0 12px}
+.resultCard .difficultyButton {
+  padding:15px 12px}
+.resultCard .mainButton {
+  margin-top:12px}
+body[data-result="lost"] .resultCard:before {
+  background:var(--coral)}
+body[data-result="lost"] .resultCard h1>span {
+  color:var(--coral)}
+#damageFlash {
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:8;
+  box-shadow:inset 0 0 130px #ff442288;
+  opacity:0}
+#damageFlash.hit {
+  animation:damage .4s ease-out}
+@keyframes damage {
+  0% {
+  opacity:1}
+100% {
+  opacity:0}
+}
+
+/* Responsive layout */
+@media(min-width:1500px) {
+  .briefing {
+  width:590px}
+.arenaLabel {
+  top:20%}
+.controlDeck {
+  bottom:70px;
+  min-height:110px}
+}
+
+@media(max-height:830px) and (min-width:901px) {
+  .gameHeader {
+  height:88px;
+  padding-top:18px;
+  padding-bottom:18px}
+.briefing {
+  margin-top:120px;
+  padding-bottom:155px}
+.eyebrow {
+  margin-bottom:17px}
+h1 {
+  font-size:clamp(70px,7.7vw,113px)}
+.intro {
+  margin:20px 0;
+  font-size:14px}
+.difficultyButton {
+  padding:10px 12px}
+.modeNumber {
+  margin-bottom:5px}
+.modeBars {
+  margin-top:8px}
+.mainButton {
+  min-height:53px;
+  padding:14px 20px}
+.controlDeck {
+  min-height:77px;
+  bottom:45px}
+.gameFooter {
+  height:44px}
+.arenaCaption {
+  bottom:24%}
+}
+
+@media(max-width:1100px) {
+  .headerNote {
+  display:none}
+.briefing {
+  width:51%}
+.controlDeckTitle span {
+  max-width:95px;
+  line-height:1.5}
+.controlItem {
+  gap:9px}
+.controlDeck {
+  gap:12px}
+.pauseControl {
+  display:none}
+.modeDescription {
+  font-size:12px}
+.deployNote>span:last-child {
+  display:none}
+#hud,#rangeHud {
+  top:91px;
+  gap:24px;
+  padding:12px 20px}
+.arenaLabel {
+  left:64%}
+.arenaLabel strong {
+  font-size:42px}
+.missionStamp {
+  right:2%}
+.arenaCaption {
+  left:61%;
+  font-size:12px;
+  gap:7px}
+}
+
+@media(max-width:900px) {
+  .gameHeader {
+  height:90px}
+.briefing {
+  margin-top:135px;
+  width:55%;
+  padding-bottom:155px}
+h1 {
+  font-size:clamp(66px,10vw,92px)}
+.briefing h1>sup {
+  margin-left:5px}
+.intro {
+  font-size:14px}
+.eyebrow {
+  font-size:12px;
+  letter-spacing:1px}
+.modeHeading .microLabel {
+  font-size:12px;
+  letter-spacing:.5px}
+.modeHint {
+  display:none}
+.difficultyButton {
+  padding:12px 10px}
+.difficultyButton strong {
+  font-size:14px}
+.modeDescription {
+  font-size:12px}
+.arenaLabel {
+  left:66%;
+  top:23%}
+.arenaLabel>span:last-child {
+  font-size:12px;
+  letter-spacing:1px}
+.arenaCaption {
+  display:none}
+.missionStamp {
+  top:45%}
+.controlDeckTitle {
+  display:none}
+.controlDeck {
+  bottom:48px;
+  min-height:85px}
+.gameFooter {
+  height:47px}
+.gameFooter>span:last-child {
+  display:none}
+.startOverlay {
+  background:linear-gradient(90deg,#101212 0%,#101212ef 24%,#10121277 65%,#10121222 100%)}
+}
+
+@media(max-width:600px) {
+  .gameHeader {
+  height:82px;
+  padding:18px 22px;
+  background:#101212f2}
+.brand {
+  font-size:12px}
+.brandMark {
+  width:34px;
+  height:34px;
+  font-size:30px}
+.brandEdition {
+  font-size:12px}
+.iconButton {
+  padding:0 9px;
+  height:34px;
+  font-size:12px;
+  gap:7px}
+.fullscreenButton {
+  width:34px}
+.startOverlay {
+  padding:0 24px;
+  background:linear-gradient(180deg,#101212 0%,#101212c9 20%,#101212f5 51%,#101212 95%)}
+.briefing {
+  margin-top:122px;
+  width:100%;
+  padding-bottom:190px}
+.eyebrow {
+  font-size:12px;
+  margin-bottom:18px}
+h1 {
+  font-size:clamp(65px,16.3vw,97px);
+  line-height:.95;
+  letter-spacing:-1px}
+.briefing h1>sup {
+  margin:4px 0 0 6px;
+  font-size:12px}
+.intro {
+  font-size:16px;
+  margin:23px 0 28px}
+.difficultyButton {
+  padding:13px 10px}
+.modeDescription {
+  font-size:12px}
+.modeNumber {
+  font-size:12px}
+.modeHeading .microLabel {
+  font-size:12px}
+.mainButton {
+  font-size:15px;
+  min-height:60px}
+.deployNote {
+  font-size:12px}
+.arenaLabel,.missionStamp {
+  display:none}
+.controlDeck {
+  position:relative;
+  left:0;
+  right:0;
+  bottom:auto;
+  margin-top:-151px;
+  min-height:95px;
+  gap:12px}
+.controlItem {
+  flex-direction:column;
+  align-items:flex-start;
+  gap:10px;
+  font-size:12px}
+.controlItem small {
+  font-size:12px}
+.keyGroup {
+  gap:2px}
+.keyGroup kbd {
+  min-width:18px;
+  height:23px;
+  padding:0 3px;
+  font-size:12px}
+.mouseIcon {
+  height:23px;
+  width:18px}
+.wideKey {
+  height:23px;
+  font-size:12px}
+.gameFooter {
+  height:39px;
+  left:24px;
+  right:24px;
+  font-size:12px;
+  letter-spacing:.6px;
+  background:#101212}
+.startOverlay {
+  padding-bottom:45px}
+#hud,#rangeHud {
+  top:83px;
+  left:14px;
+  right:14px;
+  transform:none;
+  gap:15px;
+  padding:12px;
+  justify-content:space-between}
+.hudItem>.microLabel {
+  font-size:12px;
+  letter-spacing:.5px}
+.hudItem>strong {
+  font-size:21px}
+.armorPip {
+  width:12px;
+  height:13px}
+.healthItem {
+  gap:3px}
+.timerItem {
+  min-width:78px}
+.difficultyItem {
+  display:none}
+.hudButton {
+  padding-left:10px}
+.hudButton>span {
+  display:none}
+.hudButton kbd {
+  font-size:12px}
+.modalOverlay {
+  padding:95px 20px 45px;
+  align-items:flex-start}
+.modalCard {
+  padding:25px}
+.modalCard h1 {
+  font-size:64px}
+.modalCard>p {
+  font-size:13px}
+.modalCard .eyebrow {
+  font-size:12px}
+.resultStats {
+  margin:20px 0;
+  padding:16px 0}
+.resultStats strong {
+  font-size:38px}
+}
+
+@media(prefers-reduced-motion:reduce) {
+  *,*:before,*:after {
+  animation:none!important;
+  transition:none!important}
+}
+
+/* Keep launch controls in normal flow on short windows and enlarged text. */
+.startOverlay {
+  display:flex;
+  flex-direction:column;
+  padding-bottom:57px}
+
+.briefing {
+  flex:1 0 auto;
+  padding-bottom:30px}
+
+.controlDeck {
+  position:relative;
+  left:auto;
+  right:auto;
+  bottom:auto;
+  flex-shrink:0;
+  margin-top:0}
+
+@media(max-width:600px) {
+  .startOverlay {
+  padding-bottom:56px}
+.briefing {
+  padding-bottom:25px}
+.controlDeck {
+  margin-top:0}
+}
+
+@media(max-height:650px) and (min-width:601px) {
+  .briefing {
+  margin-top:115px}
+.modalOverlay {
+  align-items:flex-start}
+}
+
+/* Compact layouts retain readable labels without pushing controls off-screen. */
+@media (max-width:600px) {
+  .brandEdition { display:none; }
+  .gameFooter .footerMotto { display:none; }
+  .briefing h1 { font-size:clamp(54px,16.3vw,97px); }
+  #hud,#rangeHud { gap:8px; padding:12px 10px; }
+  .hudButton kbd { display:none; }
+  .modalCard h1 { font-size:clamp(46px,12vw,64px); }
+}
